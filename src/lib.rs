@@ -5,7 +5,7 @@ use ffav::{
     util::frame::video::Video,
 };
 use image::{RgbImage, Rgb};
-use std::{error::Error, path::Path, convert::TryInto, io::Write};
+use std::{error::Error, path::Path, convert::TryInto, io::Write, time::Instant};
 
 pub fn stripe_image<P: AsRef<Path>>(
     path: P, image_height: u32,
@@ -32,8 +32,7 @@ pub fn stripe_image<P: AsRef<Path>>(
     let mut frame = Video::empty();
     let mut image = RgbImage::new(frame_count, image_height);
 
-    print!("0%");
-    std::io::stdout().flush()?;
+    let start_time = Instant::now();
     for (stream, packet) in video_file.packets() {
         if stream.index() != video_stream_index {
             continue;
@@ -54,14 +53,16 @@ pub fn stripe_image<P: AsRef<Path>>(
             }
             frame_index += 1;
             if frame_index % 500 == 0 {
+                let rate = frame_index as f32 / start_time.elapsed().as_secs_f32();
+                let eta = (frame_count - frame_index) as f32 / rate;
                 print!(
-                    " => {}%",
-                    ((frame_index as f32 / frame_count as f32) * 100.) as u32
+                    "\rProgress: {:>3}%\t{:.2}fps\tETA: {}m {}s\t\t",
+                    ((frame_index as f32 / frame_count as f32) * 100.) as u32,
+                    rate,
+                    (eta / 60.0) as u32,
+                    (eta % 60.0) as u32
                 );
                 std::io::stdout().flush()?;
-                // if frame_index == 2000 {
-                //     break
-                // }
             }
         }
     }
