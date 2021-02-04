@@ -10,7 +10,11 @@ use colour_of_film::{stripe_image, Mode};
 struct Options {
     /// Path to the input video file
     #[clap(index(1))]
-    video_file: OsString,
+    input_file: OsString,
+
+    /// Path to write the output image to (must be either .png or .jpeg)
+    #[clap(short, long, default_value = "output.png")]
+    output_file: OsString,
 
     /// Use every frame of the input video instead of just key frames
     /// (very slow for long videos)
@@ -25,7 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         Mode::KeyFramesOnly
     };
-    let image = stripe_image(options.video_file, 100, mode)?;
-    image.save("output.png")?;
+    let image = stripe_image(options.input_file, 100, mode)?;
+    image.save(options.output_file)?;
     Ok(())
 }

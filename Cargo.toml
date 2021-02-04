@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 ffav = "4.3"
 ffav-sys = "4.3"
-image = { version = "0.23", default-features = false, features = ["png"] }
+image = { version = "0.23", default-features = false, features = ["png", "jpeg"] }
 clap = "3.0.0-beta.2"
