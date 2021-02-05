@@ -42,9 +42,9 @@ pub fn stripe_image<P: AsRef<Path>>(
     let mut key_frames_iter;
     let packets: &mut dyn Iterator<Item=(Stream, Packet)>;
     packets = if mode == Mode::KeyFramesOnly {
-        frame_count = 277; /*video_file.packets().filter(|(stream, packet)| {
+        frame_count = video_file.packets().filter(|(stream, packet)| {
             stream.index() == video_stream_index  && packet.is_key()
-        }).count() as u32;*/
+        }).count() as u32;
         key_frames_iter = video_file.packets().filter(|(stream, packet)| {
             stream.index() == video_stream_index && packet.is_key()
         });
