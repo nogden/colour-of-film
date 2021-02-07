@@ -1,10 +1,12 @@
-use std::{error::Error, ffi::OsString};
-
+use std::ffi::OsString;
 use clap::Clap;
 use colour_of_film::{stripe_image, Mode};
 
-/// Create a colour profile of a video by taking the average colour of
-/// each frame
+/// Create a colour profile of a video.
+///
+/// A colour profile consists of 1 pixel wide stripes of the average
+/// colour of each frame of the video, concatenated into an
+/// image.
 #[derive(Clap)]
 #[clap(version = "1.0", author = "Nick Ogden <nick@nickogden.org>")]
 struct Options {
@@ -35,12 +37,12 @@ fn main() {
         Mode::KeyFramesOnly
     };
 
-    let create_image = || -> Result<(), Box<dyn Error>> {
-        stripe_image(options.input_file, options.height, mode)?
-            .save(options.output_file).map_err(|e| e.into())
-    };
+    let result = stripe_image(&options.input_file, options.height, mode)
+        .and_then(
+            |image| image.save(&options.output_file).map_err(|e| e.into())
+        );
 
-    if let Err(error) = create_image() {
+    if let Err(error) = result {
         eprintln!("{}", error);
     }
 }
