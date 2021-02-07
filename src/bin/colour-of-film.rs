@@ -16,20 +16,31 @@ struct Options {
     #[clap(short, long, default_value = "output.png")]
     output_file: OsString,
 
+
+    /// The height in pixels of the output image
+    #[clap(short, long, default_value = "100")]
+    height: u32,
+
     /// Use every frame of the input video instead of just key frames
     /// (very slow for long videos)
     #[clap(short, long)]
     all_frames: bool,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let options = Options::parse();
     let mode = if options.all_frames {
         Mode::AllFrames
     } else {
         Mode::KeyFramesOnly
     };
-    let image = stripe_image(options.input_file, 100, mode)?;
-    image.save(options.output_file)?;
-    Ok(())
+
+    let create_image = || -> Result<(), Box<dyn Error>> {
+        stripe_image(options.input_file, options.height, mode)?
+            .save(options.output_file).map_err(|e| e.into())
+    };
+
+    if let Err(error) = create_image() {
+        eprintln!("{}", error);
+    }
 }
