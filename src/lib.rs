@@ -34,8 +34,6 @@ pub fn stripe_image<P: AsRef<Path>>(
         1,
         Flags::BILINEAR,
     )?;
-    let mut frame_index = 0;
-    let mut frame = Video::empty();
 
     let frame_count: u32;
     let mut all_frames_iter;
@@ -45,6 +43,7 @@ pub fn stripe_image<P: AsRef<Path>>(
         frame_count = video_file.packets().filter(|(stream, packet)| {
             stream.index() == video_stream_index  && packet.is_key()
         }).count() as u32;
+        video_file.seek(0, 0..0)?;  // Move back to the start of the input
         key_frames_iter = video_file.packets().filter(|(stream, packet)| {
             stream.index() == video_stream_index && packet.is_key()
         });
@@ -61,6 +60,8 @@ pub fn stripe_image<P: AsRef<Path>>(
         (frame_count * image_height * 3) as usize
     );
 
+    let mut frame_index = 0;
+    let mut frame = Video::empty();
     let start_time = Instant::now();
     for (_, packet) in packets {
         // Shove in the packet
@@ -94,7 +95,7 @@ pub fn stripe_image<P: AsRef<Path>>(
     }
     println!();
     let image = RgbImage::from_vec(image_height, frame_index, image_buffer)
-        .ok_or("Image buffer wasn't big enough".to_owned())?;
+        .expect("Image buffer wasn't big enough");
 
     Ok(imageops::rotate90(&image))
 }
